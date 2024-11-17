@@ -1,0 +1,9 @@
+<launch>
+    <!-- 定义一个参数传递给节点 -->
+    <arg name="octomap_file" default="$(find esdf_map_generator)/octo_binary/octomap.bt" />
+    <!-- 启动 esdf_map_generator_node 并传递参数 -->
+    <node name="esdf_map_generator_node" pkg="esdf_map_generator" type="esdf_map_generator_node" output="screen">
+        <param name="octomap_file" value="$(arg octomap_file)" />
+    </node>
+
+</launch>
