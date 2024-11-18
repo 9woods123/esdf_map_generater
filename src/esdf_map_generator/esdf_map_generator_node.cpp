@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
 
     // 创建 ESDFMapGenerator 对象
-    ESDFMapGenerator esdf_map_generator;
+    EsdfMap::ESDFMapGenerator esdf_map_generator;
 
     // 启动 ROS 循环
     ros::spin();

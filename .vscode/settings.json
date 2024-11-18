@@ -49,6 +49,10 @@
         "map": "cpp",
         "unordered_set": "cpp",
         "optional": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "core": "cpp",
+        "chrono": "cpp",
+        "*.ipp": "cpp",
+        "thread": "cpp"
     }
 }

@@ -11,6 +11,9 @@
 #include <pcl/octree/octree_search.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <unordered_map>
+#include <chrono>
+
+namespace EsdfMap{
 
 class ESDFMapGenerator {
 public:
@@ -23,7 +26,9 @@ public:
     void publishCallback(const ros::TimerEvent&);
     void convertOctomapToRosMsg();
     void convertEsdfToPointCloudMsg();
-    
+    bool getMinCollisionDistanceAndGradient(float x, float y, float z, 
+    float& min_distance, Eigen::Vector3f& gradient);
+
 private:
     struct VoxelID {
         int x, y, z;
@@ -58,5 +63,6 @@ private:
     sensor_msgs::PointCloud2 esdf_msg_;               // 用于存储 ESDF 的 ROS 点云消息
 
 };
+}
 
 #endif // ESDF_MAP_GENERATOR_H

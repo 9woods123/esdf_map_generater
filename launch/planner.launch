@@ -1,0 +1,9 @@
+<launch>
+
+    <!-- <node name="path_planner" pkg="esdf_map_generator" type="path_planner" output="screen">
+    </node> -->
+    <node name="path_planner" pkg="esdf_map_generator" type="path_planner" output="screen">
+    </node>
+
+
+  </launch>

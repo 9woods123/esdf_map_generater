@@ -8,11 +8,11 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   roscpp
   octomap_msgs
-  
 )
 
 find_package(octomap REQUIRED)
 find_package(PCL REQUIRED)
+find_package(ompl REQUIRED)
 
 catkin_package(
  INCLUDE_DIRS include
@@ -26,7 +26,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${octomap_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-
+  ${OMPL_INCLUDE_DIRS}
 )
 
 add_library(esdf_map_generator src/esdf_map_generator/esdf_map_generator.cpp)
@@ -42,3 +42,19 @@ add_executable(esdf_map_generator_node src/esdf_map_generator/esdf_map_generator
 target_link_libraries(esdf_map_generator_node
 esdf_map_generator
 )
+
+
+add_library(visualization src/path_planner/visualization.cpp)
+target_link_libraries(visualization
+  ${catkin_LIBRARIES}
+)
+
+
+add_executable(path_planner src/path_planner/path_planner.cpp)
+
+target_link_libraries(path_planner
+  esdf_map_generator
+  ${OMPL_LIBRARIES}  
+  visualization
+)
+

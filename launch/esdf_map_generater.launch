@@ -6,4 +6,6 @@
         <param name="octomap_file" value="$(arg octomap_file)" />
     </node>
 
-</launch>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find esdf_map_generator)/rviz/esdf_gen.rviz" ></node>
+
+  </launch>
