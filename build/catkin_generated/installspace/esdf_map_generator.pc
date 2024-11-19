@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: esdf_map_generator
-Description: Description of esdf_map_generator
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: mavros mavros_msgs rospy std_msgs

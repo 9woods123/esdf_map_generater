@@ -19,8 +19,8 @@ PathPlanner::PathPlanner()
     bounds.setLow(1, -15); // y 维度下界
     bounds.setHigh(1, 15); // y 维度上界
 
-    bounds.setLow(2, -2);   // z 维度下界
-    bounds.setHigh(2, 3);  // z 维度上界
+    bounds.setLow(2, -1);   // z 维度下界
+    bounds.setHigh(2, 2);  // z 维度上界
 
     space_->setBounds(bounds);
 
@@ -112,7 +112,6 @@ bool PathPlanner::solve(double time_limit)
 
     planner_->setProblemDefinition(pdef_);
     planner_->setup();
-
     std::cout << "规划器设置完成，开始求解..." << std::endl;
 
     // 尝试在指定时间内求解
@@ -176,20 +175,26 @@ bool PathPlanner::isStateValid(const ob::State *state)
     float current_state_y = pos->values[1];
     float current_state_z = pos->values[2];
 
-    float distance;
-    Eigen::Vector3f gradient;
-    float safe_dist=0.5;
-    if(esdf_map_generator_->getMinCollisionDistanceAndGradient(
-        current_state_x,current_state_y,current_state_z,distance,gradient))
-    {
-        if(distance>safe_dist)
-        {
-            return true;
-        }
+    // return !esdf_map_generator_->isPointOccupied(current_state_x,current_state_y,current_state_z);
+    return !esdf_map_generator_->isPointOccupiedWithVolume(current_state_x,current_state_y,current_state_z,0.25);
 
-    }
-    return false;
+
+//     float distance;
+//     Eigen::Vector3f gradient;
+//     float safe_dist=0.5;
+//     if(esdf_map_generator_->getMinCollisionDistanceAndGradient(
+//         current_state_x,current_state_y,current_state_z,distance,gradient))
+//     {
+//         if(distance>safe_dist)
+//         {
+//             return true;
+//         }
+
+//     }
+//     return false;
+// }
 }
+
 
 int main(int argc, char **argv)
 {
@@ -218,8 +223,7 @@ int main(int argc, char **argv)
     planner.setGoal(goal_x, goal_y, goal_z);
 
 
-
-    if (planner.solve(20.0))
+    if (planner.solve(2))
     {
         std::cout << "路径规划成功。" << std::endl;
 
@@ -231,7 +235,6 @@ int main(int argc, char **argv)
     {
         std::cout << "路径规划失败。" << std::endl;
     }
-
 
     // 提取图结构中的节点和边
     auto [nodes, edges] = planner.extractGraph();

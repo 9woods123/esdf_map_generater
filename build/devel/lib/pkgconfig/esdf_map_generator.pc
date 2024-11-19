@@ -1,8 +1,0 @@
-prefix=/home/woods/FMT_ws/FMT-Firmware/fmt_ros_ws/src/esdf_map_generater/build/devel
-
-Name: esdf_map_generator
-Description: Description of esdf_map_generator
-Version: 0.0.0
-Cflags: -I/home/woods/FMT_ws/FMT-Firmware/fmt_ros_ws/src/esdf_map_generater/include
-Libs: -L${prefix}/lib 
-Requires: mavros mavros_msgs rospy std_msgs

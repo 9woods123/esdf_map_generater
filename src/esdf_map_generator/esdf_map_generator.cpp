@@ -29,7 +29,9 @@ void ESDFMapGenerator::loadOctomap() {
     }
 
     // 从 OctoMap 中获取分辨率
+    
     resolution_ = tree_.getResolution();
+
     ROS_INFO("Loaded OctoMap with %zu nodes at resolution %f", tree_.size(), resolution_);
 
     // 遍历 OctoMap 的节点
@@ -41,6 +43,8 @@ void ESDFMapGenerator::loadOctomap() {
             freespace_cloud_->push_back(point); // 自由空间
         }
     }
+    //大概率是这里少了点，由于free space的合并？
+
     ROS_INFO("Extracted %zu occupied points, %zu free points", octo_cloud_->size(), freespace_cloud_->size());
 
     // 生成 ESDF
@@ -67,16 +71,13 @@ void ESDFMapGenerator::generateESDF() {
                 static_cast<int>(std::floor(free_point.y / resolution_)),
                 static_cast<int>(std::floor(free_point.z / resolution_))};
             esdf_map_[voxel_id] = distance;
-            // if ( voxel_id.x>120)
+            // if ( 0<voxel_id.x && voxel_id.x<50 && 0<voxel_id.y && voxel_id.y<50 )
             // {
             //     std::cout<<"voxel_id: "<<voxel_id.x<<", "<<voxel_id.y<<", "<<voxel_id.z<<std::endl;
             // }
 
+        }
 
-        }
-        else{
-            std::cout<<"octree.nearestKSearch <0"<<std::endl;
-        }
     }
     ROS_INFO("Generated ESDF with %zu entries", esdf_map_.size());
 }
@@ -213,6 +214,69 @@ bool ESDFMapGenerator::getMinCollisionDistanceAndGradient(float x, float y, floa
 
     return true;
 }
+
+bool ESDFMapGenerator::isPointOccupied(double x, double y, double z) {
+    // 获取目标点的 3D 坐标
+    octomap::point3d query_point(x, y, z);
+
+    // 查找目标点所在的节点
+    octomap::OcTreeNode* node = tree_.search(query_point);
+    if (node != nullptr && tree_.isNodeOccupied(node)) {
+        return true;  // 如果目标点已经占用，直接返回碰撞
+    }
+
+    // 使用 26 邻域来查找周围的节点
+    // 获取一个小范围内的所有节点
+    std::vector<octomap::OcTreeNode*> neighbors;
+    float radius = 3;  // 使用碰撞阈值作为搜索半径
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dz = -1; dz <= 1; ++dz) {
+                // 排除中心点自己
+                if (dx == 0 && dy == 0 && dz == 0) continue;
+
+                // 计算邻域点坐标
+                octomap::point3d neighbor_point(x + dx * tree_.getResolution(),
+                                                y + dy * tree_.getResolution(),
+                                                z + dz * tree_.getResolution());
+                
+                // 查找邻域节点
+                octomap::OcTreeNode* neighbor_node = tree_.search(neighbor_point);
+                if (neighbor_node != nullptr && tree_.isNodeOccupied(neighbor_node)) {
+                        return true;  // 如果有邻域节点的距离小于阈值，视为碰撞
+                    }
+                }
+            }
+        }
+
+    // // 如果没有发现碰撞，返回 false
+    return false;
+}
+
+bool ESDFMapGenerator::isPointOccupiedWithVolume(double x, double y, double z, double radius) {
+    // 获取目标点的 3D 坐标
+
+    // 遍历目标点附近的节点
+    for (float dx = -radius; dx <= radius; dx += tree_.getResolution()) {
+        for (float dy = -radius; dy <= radius; dy += tree_.getResolution()) {
+            for (float dz = -radius; dz <= radius; dz += tree_.getResolution()) {
+                // 计算检测点的坐标
+                octomap::point3d check_point(x + dx, y + dy, z + dz);
+
+                // 查找检测点的节点
+                octomap::OcTreeNode* node = tree_.search(check_point);
+                if (node != nullptr && tree_.isNodeOccupied(node)) {
+                    // 如果检测点被占用，视为碰撞
+                    return true;
+                }
+            }
+        }
+    }
+
+    // 如果所有检测点都未被占用，返回未碰撞
+    return false;
+}
+
 
 void ESDFMapGenerator::publishCallback(const ros::TimerEvent&) {
     ros::Time now = ros::Time::now();

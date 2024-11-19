@@ -28,6 +28,8 @@ public:
     void convertEsdfToPointCloudMsg();
     bool getMinCollisionDistanceAndGradient(float x, float y, float z, 
     float& min_distance, Eigen::Vector3f& gradient);
+    bool isPointOccupied(double x, double y, double z);
+    bool isPointOccupiedWithVolume(double x, double y, double z, double radius);
 
 private:
     struct VoxelID {
