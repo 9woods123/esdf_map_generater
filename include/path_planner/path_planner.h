@@ -52,6 +52,7 @@ public:
     bool solve(double time_limit);
     
     std::pair<std::vector<Node>, std::vector<Edge>> extractGraph() const;
+    std::vector<Node> extractSolutionPath() const;
 
 private:
     /**
@@ -66,6 +67,9 @@ private:
     std::shared_ptr<ob::SpaceInformation> si_;       ///< 空间信息
     std::shared_ptr<ob::ProblemDefinition> pdef_;    ///< 问题定义
     std::shared_ptr<og::PRMstar> planner_;
+
+
+    static inline std::shared_ptr<EsdfMap::ESDFMapGenerator> esdf_map_generator_;
 
     // static inline EsdfMap::ESDFMapGenerator esdf_map_generator_; ///< ESDF 地图生成器实例
     static constexpr double collision_threshold = 0.1;           ///< 碰撞阈值

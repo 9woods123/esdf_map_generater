@@ -50,8 +50,8 @@ void ESDFMapGenerator::loadOctomap() {
 }
 
 
-
 void ESDFMapGenerator::generateESDF() {
+
     pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree(resolution_);
     octree.setInputCloud(octo_cloud_);
     octree.addPointsFromInputCloud();
@@ -59,6 +59,7 @@ void ESDFMapGenerator::generateESDF() {
     for (const auto& free_point : freespace_cloud_->points) {
         std::vector<int> point_idx;
         std::vector<float> point_dist_sq;
+
         if (octree.nearestKSearch(free_point, 1, point_idx, point_dist_sq) > 0) {
             float distance = std::sqrt(point_dist_sq[0]);
             VoxelID voxel_id{
@@ -66,6 +67,15 @@ void ESDFMapGenerator::generateESDF() {
                 static_cast<int>(std::floor(free_point.y / resolution_)),
                 static_cast<int>(std::floor(free_point.z / resolution_))};
             esdf_map_[voxel_id] = distance;
+            // if ( voxel_id.x>120)
+            // {
+            //     std::cout<<"voxel_id: "<<voxel_id.x<<", "<<voxel_id.y<<", "<<voxel_id.z<<std::endl;
+            // }
+
+
+        }
+        else{
+            std::cout<<"octree.nearestKSearch <0"<<std::endl;
         }
     }
     ROS_INFO("Generated ESDF with %zu entries", esdf_map_.size());
@@ -97,13 +107,10 @@ void ESDFMapGenerator::convertEsdfToPointCloudMsg() {
         const VoxelID& voxel = kv.first;
         float distance = kv.second;
 
-        // 筛选出大于 maximum_distance 的点
-        if (distance > maximum_distance) {
-            continue;  // 如果距离大于最大距离，跳过该点
-        }
-        if (voxel.z * resolution_ < 2.5f || voxel.z * resolution_ > 3.0f) {
-            continue;  // 如果 z 值不在 2.5 到 3 之间，跳过
-        }
+        // // 筛选出大于 maximum_distance 的点
+        // if (distance > maximum_distance) {
+        //     continue;  // 如果距离大于最大距离，跳过该点
+        // }
 
         pcl::PointXYZRGB point;
         point.x = voxel.x * resolution_;
@@ -143,16 +150,20 @@ void ESDFMapGenerator::convertEsdfToPointCloudMsg() {
 
 bool ESDFMapGenerator::getMinCollisionDistanceAndGradient(float x, float y, float z, float& min_distance, Eigen::Vector3f& gradient) {
     // 查找 (x, y, z) 所在位置的最小碰撞距离和梯度
+    
     VoxelID voxel_id{
         static_cast<int>(std::floor(x / resolution_)),
         static_cast<int>(std::floor(y / resolution_)),
         static_cast<int>(std::floor(z / resolution_))
     };
 
+
     // 检查该点是否在 ESDF 中
     auto it = esdf_map_.find(voxel_id);
     if (it == esdf_map_.end()) {
-        ROS_ERROR("Point (%f, %f, %f) not found in ESDF map.", x, y, z);
+        ROS_ERROR("Point (%f, %f, %f) not found in ESDF map. with ID %i,%i,%i", x, y, z,
+        voxel_id.x,voxel_id.y,voxel_id.z);
+
         return false;  // 如果该点没有在 ESDF 中，返回 false
     }
 
@@ -212,26 +223,6 @@ void ESDFMapGenerator::publishCallback(const ros::TimerEvent&) {
     esdf_pub_.publish(esdf_msg_);
 
     ROS_INFO("Published OctoMap and ESDF.");
-
-
-    // float x = 0.0f, y = 0.0f, z = 2.0f;
-    // float min_distance;
-    // Eigen::Vector3f gradient;
-
-    // // 使用 std::chrono 计时
-    // auto start_time = std::chrono::high_resolution_clock::now();
-
-    // if (getMinCollisionDistanceAndGradient(x, y, z, min_distance, gradient)) {
-    //     // 计算耗时
-    //     auto end_time = std::chrono::high_resolution_clock::now();
-    //     std::chrono::duration<float> duration = end_time - start_time;
-    //     ROS_INFO("Min Collision Distance: %f", min_distance);
-    //     ROS_INFO("Gradient: [%f, %f, %f]", gradient.x(), gradient.y(), gradient.z());
-    //     ROS_INFO("Time taken: %f seconds", duration.count()); // 打印执行时间
-    // } else {
-    //     ROS_ERROR("Failed to get distance and gradient for point (%f, %f, %f)", x, y, z);
-    // }
-    // 0.04 ms per require
 
 }
 }
