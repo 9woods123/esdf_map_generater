@@ -1,41 +1,42 @@
 #include "path_planner/path_planner.h"
 
-// 构造函数
-PathPlanner::PathPlanner()
+PathPlanner::PathPlanner(bool is_2D_planning, double fixed_z)
+    : is_2D_planning_(is_2D_planning), fixed_z_(fixed_z)
 {
-
-
-
-    // 初始化 SE3 状态空间
     space_ = std::make_shared<ob::SE3StateSpace>();
+    esdf_map_generator_ = std::make_shared<EsdfMap::ESDFMapGenerator>();
 
-    // 设置 R^3 部分的长方形边界
+    double min_x, min_y, min_z, max_x, max_y, max_z;
+    esdf_map_generator_->getMapBounds(min_x, min_y, min_z, max_x, max_y, max_z);
+
+    std::cout << "==================Real-world Boundaries===============" << std::endl;
+    std::cout << "  X: [" << min_x << ", " << max_x << "]" << std::endl;
+    std::cout << "  Y: [" << min_y << ", " << max_y << "]" << std::endl;
+    std::cout << "  Z: [" << min_z << ", " << max_z << "]"<< std::endl;
+    std::cout << "======================================================" << std::endl;
+
     ob::RealVectorBounds bounds(3);
+    bounds.setLow(0, min_x); bounds.setHigh(0, max_x);
+    bounds.setLow(1, min_y); bounds.setHigh(1, max_y);
 
-    // 设置每个维度的边界
-    bounds.setLow(0, -15); // x 维度下界
-    bounds.setHigh(0, 15); // x 维度上界
-
-    bounds.setLow(1, -15); // y 维度下界
-    bounds.setHigh(1, 15); // y 维度上界
-
-    bounds.setLow(2, -1);   // z 维度下界
-    bounds.setHigh(2, 2);  // z 维度上界
+    if (is_2D_planning_) {
+        bounds.setLow(2, fixed_z_);
+        bounds.setHigh(2, fixed_z_);
+    } else {
+        bounds.setLow(2, min_z);
+        bounds.setHigh(2, max_z);
+    }
 
     space_->setBounds(bounds);
 
-
-    // 初始化空间信息和问题定义
     si_ = std::make_shared<ob::SpaceInformation>(space_);
-    si_->setStateValidityChecker(isStateValid); // 设置状态有效性检查函数
+    si_->setStateValidityChecker(
+        [this](const ob::State *state) { return this->isStateValid(state); }
+    );
     pdef_ = std::make_shared<ob::ProblemDefinition>(si_);
-
-    // 初始化规划器
     planner_ = std::make_shared<og::PRMstar>(si_);
-
-    esdf_map_generator_=std::make_shared<EsdfMap::ESDFMapGenerator>();
-
 }
+
 
 // 设置起点
 void PathPlanner::setStart(double x, double y, double z)
@@ -175,24 +176,24 @@ bool PathPlanner::isStateValid(const ob::State *state)
     float current_state_y = pos->values[1];
     float current_state_z = pos->values[2];
 
-    // return !esdf_map_generator_->isPointOccupied(current_state_x,current_state_y,current_state_z);
+    // using octomap collision check 
     return !esdf_map_generator_->isPointOccupiedWithVolume(current_state_x,current_state_y,current_state_z,0.25);
 
+    // or using esdf collision check 
 
-//     float distance;
-//     Eigen::Vector3f gradient;
-//     float safe_dist=0.5;
-//     if(esdf_map_generator_->getMinCollisionDistanceAndGradient(
-//         current_state_x,current_state_y,current_state_z,distance,gradient))
-//     {
-//         if(distance>safe_dist)
-//         {
-//             return true;
-//         }
+    // float distance;
+    // Eigen::Vector3f gradient;
+    // float safe_dist=0.5;
+    // if(esdf_map_generator_->getMinCollisionDistanceAndGradient(
+    //     current_state_x,current_state_y,current_state_z,distance,gradient))
+    // {
+    //     if(distance>safe_dist)
+    //     {
+    //         return true;
+    //     }
 
-//     }
-//     return false;
-// }
+    // }
+    // return false;
 }
 
 

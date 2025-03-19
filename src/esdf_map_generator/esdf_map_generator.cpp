@@ -21,6 +21,16 @@ ESDFMapGenerator::ESDFMapGenerator()
 
 ESDFMapGenerator::~ESDFMapGenerator() {}
 
+void ESDFMapGenerator::getMapBounds(double &min_x, double &min_y, double &min_z, 
+    double &max_x, double &max_y, double &max_z)
+{
+// 假设 ESDF 生成器已经有 tree_，从 tree_ 里获取边界
+tree_.getMetricMin(min_x, min_y, min_z);
+tree_.getMetricMax(max_x, max_y, max_z);
+
+}
+
+
 void ESDFMapGenerator::loadOctomap() {
 
     if (!tree_.readBinary(octomap_file_)) {
@@ -54,34 +64,150 @@ void ESDFMapGenerator::loadOctomap() {
 }
 
 
-void ESDFMapGenerator::generateESDF() {
+// void ESDFMapGenerator::generateESDF() {
 
+//     pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree(resolution_);
+//     octree.setInputCloud(octo_cloud_);
+//     octree.addPointsFromInputCloud();
+
+//     // for (const auto& free_point : freespace_cloud_->points) {
+//     //     std::vector<int> point_idx;
+//     //     std::vector<float> point_dist_sq;
+
+
+//     //     if (octree.nearestKSearch(free_point, 1, point_idx, point_dist_sq) > 0) {
+//     //         float distance = std::sqrt(point_dist_sq[0]);
+//     //         VoxelID voxel_id{
+//     //             static_cast<int>(std::floor(free_point.x / resolution_)),
+//     //             static_cast<int>(std::floor(free_point.y / resolution_)),
+//     //             static_cast<int>(std::floor(free_point.z / resolution_))};
+
+//     //         esdf_map_[voxel_id] = distance;
+//     //         // if ( 0<voxel_id.x && voxel_id.x<50 && 0<voxel_id.y && voxel_id.y<50 )
+//     //         // {
+//     //         //     std::cout<<"voxel_id: "<<voxel_id.x<<", "<<voxel_id.y<<", "<<voxel_id.z<<std::endl;
+//     //         // }
+
+//     //     }
+
+//     // }
+
+//     // 获取边界范围
+//     double min_x, min_y, min_z, max_x, max_y, max_z;
+//     tree_.getMetricMin(min_x, min_y, min_z);
+//     tree_.getMetricMax(max_x, max_y, max_z);
+
+//     int min_x_idx = static_cast<int>(std::floor(min_x / resolution_));
+//     int max_x_idx = static_cast<int>(std::floor(max_x / resolution_));
+//     int min_y_idx = static_cast<int>(std::floor(min_y / resolution_));
+//     int max_y_idx = static_cast<int>(std::floor(max_y / resolution_));
+//     int min_z_idx = static_cast<int>(std::floor(min_z / resolution_));
+//     int max_z_idx = static_cast<int>(std::floor(max_z / resolution_));
+
+//     std::cout << "Voxel Index Range:" << std::endl;
+//     std::cout << "  X: [" << min_x_idx << ", " << max_x_idx << "]" << std::endl;
+//     std::cout << "  Y: [" << min_y_idx << ", " << max_y_idx << "]" << std::endl;
+//     std::cout << "  Z: [" << min_z_idx << ", " << max_z_idx << "]" << std::endl;
+    
+//     std::cout << "Real-world Boundaries:" << std::endl;
+//     std::cout << "  X: [" << min_x << ", " << max_x << "]" << std::endl;
+//     std::cout << "  Y: [" << min_y << ", " << max_y << "]" << std::endl;
+//     std::cout << "  Z: [" << min_z << ", " << max_z << "]" << std::endl;
+    
+//     for (int x = min_x_idx; x <= max_x_idx; ++x) {
+//         for (int y = min_y_idx; y <= max_y_idx; ++y) {
+//             for (int z = min_z_idx; z <= max_z_idx; ++z) {
+//                 pcl::PointXYZ query_point(
+//                     (x + 0.5f) * resolution_,
+//                     (y + 0.5f) * resolution_,
+//                     (z + 0.5f) * resolution_
+//                 );
+
+//                 std::vector<int> point_idx;
+//                 std::vector<float> point_dist_sq;
+
+//                 if (octree.nearestKSearch(query_point, 1, point_idx, point_dist_sq) > 0) {
+//                     float distance = std::sqrt(point_dist_sq[0]);
+//                     VoxelID voxel_id{x, y, z};
+//                     esdf_map_[voxel_id] = distance;
+//                 }
+//             }
+//         }
+//     }
+
+
+//     ROS_INFO("Generated ESDF with %zu entries", esdf_map_.size());
+// }
+
+void ESDFMapGenerator::generateESDF() {
+    using namespace std;
+
+    esdf_map_.clear();
+
+    // 初始化 Octree
     pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree(resolution_);
     octree.setInputCloud(octo_cloud_);
     octree.addPointsFromInputCloud();
 
-    for (const auto& free_point : freespace_cloud_->points) {
-        std::vector<int> point_idx;
-        std::vector<float> point_dist_sq;
+    // 用于 BFS 的队列和方向
+    queue<VoxelID> bfs_queue;
+    std::vector<VoxelID> directions = {
+        {1, 0, 0}, {-1, 0, 0},
+        {0, 1, 0}, {0, -1, 0},
+        {0, 0, 1}, {0, 0, -1}
+    };
 
-        if (octree.nearestKSearch(free_point, 1, point_idx, point_dist_sq) > 0) {
-            float distance = std::sqrt(point_dist_sq[0]);
-            VoxelID voxel_id{
-                static_cast<int>(std::floor(free_point.x / resolution_)),
-                static_cast<int>(std::floor(free_point.y / resolution_)),
-                static_cast<int>(std::floor(free_point.z / resolution_))};
-            esdf_map_[voxel_id] = distance;
-            // if ( 0<voxel_id.x && voxel_id.x<50 && 0<voxel_id.y && voxel_id.y<50 )
-            // {
-            //     std::cout<<"voxel_id: "<<voxel_id.x<<", "<<voxel_id.y<<", "<<voxel_id.z<<std::endl;
-            // }
-
-        }
-
+    // Step 1: 初始化起点（障碍物体素）
+    for (const auto& point : octo_cloud_->points) {
+        VoxelID voxel_id{
+            static_cast<int>(std::floor(point.x / resolution_)),
+            static_cast<int>(std::floor(point.y / resolution_)),
+            static_cast<int>(std::floor(point.z / resolution_))
+        };
+        esdf_map_[voxel_id] = 0.0f; // 距离为 0
+        bfs_queue.push(voxel_id);
     }
-    ROS_INFO("Generated ESDF with %zu entries", esdf_map_.size());
-}
 
+    // Step 2: 广度优先搜索扩展
+    while (!bfs_queue.empty()) {
+        VoxelID current = bfs_queue.front();
+        bfs_queue.pop();
+        float current_dist = esdf_map_[current];
+
+        for (const auto& dir : directions) {
+            VoxelID neighbor{
+                current.x + dir.x,
+                current.y + dir.y,
+                current.z + dir.z
+            };
+
+            // 如果该 voxel 已计算过距离，跳过
+            if (esdf_map_.find(neighbor) != esdf_map_.end())
+                continue;
+
+            // 获取邻居 voxel 的中心坐标（真实世界坐标）
+            pcl::PointXYZ neighbor_point{
+                (neighbor.x + 0.5f) * resolution_,
+                (neighbor.y + 0.5f) * resolution_,
+                (neighbor.z + 0.5f) * resolution_
+            };
+
+            // 最近障碍点搜索（使用 Octree）
+            std::vector<int> point_idx;
+            std::vector<float> point_dist_sq;
+            if (octree.nearestKSearch(neighbor_point, 1, point_idx, point_dist_sq) > 0) {
+                float distance = std::sqrt(point_dist_sq[0]);
+                esdf_map_[neighbor] = distance;
+
+                // 可选：只在一定范围内传播，提升效率
+                if (distance < 0.5f) // 0.5 米内传播
+                    bfs_queue.push(neighbor);
+            }
+        }
+    }
+
+    ROS_INFO("Generated ESDF with %zu entries using BFS", esdf_map_.size());
+}
 
 // 将 OctoMap 转换为 ROS 消息
 void ESDFMapGenerator::convertOctomapToRosMsg() {
@@ -164,8 +290,9 @@ bool ESDFMapGenerator::getMinCollisionDistanceAndGradient(float x, float y, floa
     if (it == esdf_map_.end()) {
         ROS_ERROR("Point (%f, %f, %f) not found in ESDF map. with ID %i,%i,%i", x, y, z,
         voxel_id.x,voxel_id.y,voxel_id.z);
-
-        return false;  // 如果该点没有在 ESDF 中，返回 false
+        min_distance=999;
+        gradient.setZero();
+        return true;  // 如果该点没有在 ESDF 中，返回 true
     }
 
     // 获取该点的最小碰撞距离

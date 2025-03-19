@@ -51,10 +51,22 @@ target_link_libraries(visualization
 
 
 add_executable(path_planner src/path_planner/path_planner.cpp)
-
 target_link_libraries(path_planner
   esdf_map_generator
   ${OMPL_LIBRARIES}  
   visualization
 )
 
+
+add_library(path_planner_lib src/path_planner/path_planner.cpp)
+target_link_libraries(path_planner_lib
+  esdf_map_generator
+  ${OMPL_LIBRARIES}  
+  visualization
+)
+
+
+add_executable(path_planning_demo src/path_planning_demo/path_planning_demo.cpp)
+target_link_libraries(path_planning_demo
+ path_planner_lib
+)

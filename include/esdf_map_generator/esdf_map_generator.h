@@ -12,6 +12,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <unordered_map>
 #include <chrono>
+#include <queue>
 
 namespace EsdfMap{
 
@@ -30,6 +31,7 @@ public:
     float& min_distance, Eigen::Vector3f& gradient);
     bool isPointOccupied(double x, double y, double z);
     bool isPointOccupiedWithVolume(double x, double y, double z, double radius);
+    void getMapBounds(double &min_x, double &min_y, double &min_z,double &max_x, double &max_y, double &max_z);
 
 private:
     struct VoxelID {

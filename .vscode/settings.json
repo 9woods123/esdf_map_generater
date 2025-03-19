@@ -53,6 +53,16 @@
         "core": "cpp",
         "chrono": "cpp",
         "*.ipp": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "ctime": "cpp",
+        "condition_variable": "cpp",
+        "ratio": "cpp",
+        "set": "cpp",
+        "mutex": "cpp",
+        "valarray": "cpp",
+        "iomanip": "cpp",
+        "numeric": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
     }
 }

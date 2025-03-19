@@ -26,7 +26,7 @@ struct Obstacle
 class PathPlanner
 {
 public:
-    PathPlanner();
+    PathPlanner(bool is_2D_planning = false, double fixed_z = 0.5); // 默认值
 
     /**
      * @brief 设置规划起点
@@ -62,7 +62,8 @@ private:
      */
     static bool isStateValid(const ob::State *state);
 
-
+    bool is_2D_planning_=false;
+    double fixed_z_=0.5;
     std::shared_ptr<ob::SE3StateSpace> space_;       ///< 状态空间
     std::shared_ptr<ob::SpaceInformation> si_;       ///< 空间信息
     std::shared_ptr<ob::ProblemDefinition> pdef_;    ///< 问题定义
@@ -73,7 +74,7 @@ private:
 
     // static inline EsdfMap::ESDFMapGenerator esdf_map_generator_; ///< ESDF 地图生成器实例
     static constexpr double collision_threshold = 0.1;           ///< 碰撞阈值
-
+    
 
 };
 
