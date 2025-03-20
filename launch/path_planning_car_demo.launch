@@ -10,10 +10,15 @@
     <param name="is_2D_planning" value="true" />
 
     
-
     <node name="path_planner" pkg="esdf_map_generator" type="path_planning_demo" output="screen">
-            <param name="octomap_file" value="$(arg octomap_file)" />
+        <param name="octomap_file" value="$(arg octomap_file)" />
+        <remap from="planned_trajectory" to="/path_plannning_demo_target_traj"/>
+    </node>
 
+
+    <node name="traj_server" pkg="traj_server" type="traj_server" output="screen">
+        <remap from="cmd2controller" to="/mavros/setpoint_raw/local"/>
+        <remap from="input_trajectory_topic" to="/path_plannning_demo_target_traj"/>
     </node>
 
 

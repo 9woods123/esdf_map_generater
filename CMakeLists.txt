@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   roscpp
   octomap_msgs
+  traj_msgs
 )
 
 find_package(octomap REQUIRED)
