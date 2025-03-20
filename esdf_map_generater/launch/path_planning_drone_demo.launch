@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="octomap_file" default="$(find path_planning_demo)/octo_binary/octomap.bt" />
+    <arg name="octomap_file" default="$(find esdf_map_generator)/octo_binary/octomap.bt" />
     <!-- 设置终点 -->
 
     <param name="goal_x" value="13.0" />
@@ -10,7 +10,7 @@
     <param name="is_2D_planning" value="false" />
 
     
-    <node name="path_planner" pkg="path_planning_demo" type="path_planning_demo" output="screen">
+    <node name="path_planner" pkg="esdf_map_generator" type="path_planning_demo" output="screen">
         <param name="octomap_file" value="$(arg octomap_file)" />
         <remap from="planned_trajectory" to="/path_plannning_demo_target_traj"/>
     </node>
@@ -22,7 +22,7 @@
     </node>
 
 
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find path_planning_demo)/rviz/esdf_gen.rviz" ></node>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find esdf_map_generator)/rviz/esdf_gen.rviz" ></node>
 
 
   </launch>

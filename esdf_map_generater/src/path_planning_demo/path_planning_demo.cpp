@@ -36,7 +36,7 @@ void positionCallback(const mavros_msgs::PositionTarget::ConstPtr &msg)
 // 设置起点为当前机器人位置
 void setStartFromRobotPosition(PathPlanner &planner)
 {
-    planner.setStart(-13.5, 10.5, 0.5);
+    planner.setStart(-13.5, 10.5, 1.5);
     // planner.setStart(robot_position.x, robot_position.y, robot_position.z);
 }
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     position_sub = nh.subscribe<mavros_msgs::PositionTarget>("robot_position", 10, positionCallback);
     traj_pub = nh.advertise<traj_msgs::Trajectory>("planned_trajectory", 10);
 
-    PathPlanner planner;
+    PathPlanner planner(is_2D_planning,fixed_z);
 
     ros::Rate loop_rate(10);
     while (ros::ok())
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 
             if (planner.solve(2))
             {
-                ROS_INFO("路径规划成功。");
+                ROS_INFO("===============Successfully================");
 
                 auto solution_path = planner.extractSolutionPath();
                 visualization.setPathData(solution_path);
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                ROS_WARN("路径规划失败。");
+                ROS_WARN("===================Failed===================");
             }
 
             break;
