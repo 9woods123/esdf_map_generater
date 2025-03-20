@@ -14,7 +14,7 @@
 ros::Subscriber position_sub;
 ros::Publisher traj_pub;
 geometry_msgs::Point robot_position;  // 存储机器人位置
-bool is_get_start_point = true;
+bool is_get_start_point = false;
 
 // 目标位置
 double goal_x, goal_y, goal_z;
@@ -36,8 +36,15 @@ void positionCallback(const mavros_msgs::PositionTarget::ConstPtr &msg)
 // 设置起点为当前机器人位置
 void setStartFromRobotPosition(PathPlanner &planner)
 {
-    planner.setStart(-13.5, 10.5, 1.5);
-    // planner.setStart(robot_position.x, robot_position.y, robot_position.z);
+    // planner.setStart(-13.5, 10.5, 1.5);
+    if (is_2D_planning)
+    {        
+        planner.setStart(robot_position.x, robot_position.y, fixed_z);
+    }
+    else{
+        planner.setStart(robot_position.x, robot_position.y, robot_position.z);
+
+    }
 }
 
 // 设置终点

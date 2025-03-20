@@ -5,14 +5,17 @@
 
     <param name="goal_x" value="13.0" />
     <param name="goal_y" value="-7.0" />
+
     <param name="goal_z" value="1.5" />
 
     <param name="is_2D_planning" value="true" />
-
+    <param name="fixed_z" value="1.5" />   
+    <!-- fixed_z = goal_z when using is_2D_planning==true -->
     
     <node name="path_planner" pkg="esdf_map_generator" type="path_planning_demo" output="screen">
         <param name="octomap_file" value="$(arg octomap_file)" />
         <remap from="planned_trajectory" to="/path_plannning_demo_target_traj"/>
+
     </node>
 
 
