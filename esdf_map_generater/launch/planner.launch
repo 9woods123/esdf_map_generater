@@ -1,0 +1,23 @@
+<launch>
+
+    <arg name="octomap_file" default="$(find esdf_map_generator)/octo_binary/octomap.bt" />
+
+
+    <!-- 设置起点和终点 -->
+    <param name="start_x" value="-13.5" />
+    <param name="start_y" value="10.5" />
+    <param name="start_z" value="0.5" />
+
+    <param name="goal_x" value="13.0" />
+    <param name="goal_y" value="-7.0" />
+    <param name="goal_z" value="0.5" />
+
+    <node name="path_planner" pkg="esdf_map_generator" type="path_planner" output="screen">
+        <param name="octomap_file" value="$(arg octomap_file)" />
+    </node>
+
+
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find esdf_map_generator)/rviz/esdf_gen.rviz" ></node>
+
+
+  </launch>

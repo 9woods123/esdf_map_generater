@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>traj_server</name>
+  <version>0.0.0</version>
+  <description>The traj_server package</description>
+
+  <maintainer email="woods@todo.todo">woods</maintainer>
+  <license>TODO</license>
+
+  <!-- 构建工具依赖 -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- 依赖的 ROS 包 -->
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>traj_msgs</depend>
+  <depend>mavros_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>visualization_msgs</depend>
+
+  <!-- 导出配置 -->
+  <export>
+    <!-- 其他工具可以在这里添加额外的信息 -->
+  </export>
+</package>
